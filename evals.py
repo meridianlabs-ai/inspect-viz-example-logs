@@ -23,7 +23,7 @@ def evals_bar_plot(
        stderr_field: Name of field containing stderr in data table.
        score_domain: Domain (beginning and ending values) for y-axis.
     """
-    # compute z_alpha for confidency interval
+    # compute z_alpha for confidence interval
     z_alpha = _z_alpha(ci)
 
     # render plot
