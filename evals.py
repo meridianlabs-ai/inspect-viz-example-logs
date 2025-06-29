@@ -4,63 +4,97 @@ from inspect_viz.plot import plot, legend
 from inspect_viz.mark import bar_y, rule_x
 from inspect_viz.table import column, table
 from inspect_viz.transform import sql
+from pydantic import BaseModel
+
+
+
+class PlotAxis(BaseModel):
+    """Plot axis options."""
+
+    label: str
+    """Axis label."""
+    
+    value_field: str
+    """Field to read y-value from."""
+
+    stderr_field: str | None
+    """Field to read stderr from (optional, required for plotting confidence intervals)."""
+    
+    ci: float | None 
+    """Confidence interval (e.g. 0.80, 0.90, 0.95, etc.)."""
+
+    domain: tuple[float, float] | None
+    """Domain of y-axis (range of values to display)."""
+
+
+def score_axis(ci: float = 0.95) -> PlotAxis:
+    """Axis definition for scores from `evals_df()` data frames.
+    
+    Args:
+        ci: Confidence interval (e.g. 0.80, 0.90, 0.95, etc.).
+    """
+
+    return PlotAxis(
+        label="score",
+        value_field="score_headline_value",
+        stderr_field="score_headline_stderr",
+        ci=ci,
+        domain=(0.0, 1.0)
+    )
+
 
 def evals_bar_plot(
     evals: Data, 
-    ci: float = 0.95, 
-    score_field: str = "score_headline_value",
-    stderr_field: str = "score_headline_stderr",
-    score_domain: list[float] = [0,1.0]
+    x: str = "model",
+    fx: str = "task_name",
+    y: PlotAxis = score_axis()
 ) -> Component:
-    """Bar plot that summarizes evals scores by model and task.
-    
-    By default, scores used for plotting are the headline metric and stderr extracted by the `evals_df()` function from the `inspect_ai` package (which is the first score in the eval results). Specify alternative `score_field` and/or `stderr_field` options to override the default fields.
+    """Bar plot for comparing evals.
 
     Args:
-       evals: Evals data table.
-       ci: Confidence interval (defaults to 0.95)
-       score_field: Name of field containing score value in data table.
-       stderr_field: Name of field containing stderr in data table.
-       score_domain: Domain (beginning and ending values) for y-axis.
+       evals: Evals data table (typically read using `evals_df()`)
+       x: Name of field for x axis (defaults to "model")
+       fx: Name of field for x facet (defaults to "task_name")
+       y: Definition for y axis (defaults to score with confidence intervals)
     """
-    # compute z_alpha for confidence interval
-    z_alpha = _z_alpha(ci)
+  
+    # start with bar plot
+    components = [bar_y(
+        evals, 
+        # models (faceted by task) on x-axis
+        x=x, 
+        fx=fx, 
+        # headline metric score on y-axis
+        y=y.value_field,
+        # x as fill color
+        fill=x,
+    )]
+
+    # add ci if requested
+    if y.stderr_field is not None and y.ci is not None:
+        z_alpha = _z_alpha(y.ci)
+        components.append(rule_x(
+            evals,
+            x=x,
+            fx=fx,
+            y1=sql(f"{y.value_field} - ({z_alpha} * {y.stderr_field})"),
+            y2=sql(f"{y.value_field} + ({z_alpha} * {y.stderr_field})"),
+            stroke="black",
+            marker="tick-x",
+        ),)
+
 
     # render plot
     return plot(
-        # main bar plot
-        bar_y(
-            evals, 
-            # models (faceted by task) on x-axis
-            x="model", 
-            fx="task_name", 
-            # headline metric score on y-axis
-            y=score_field,
-            # model as fill color
-            fill="model",
-        ),
-        # confidence intervals
-        rule_x(
-            evals,
-            # model (faceted by task) on x-axis
-            x="model",
-            fx="task_name",
-            # line between confidence interval points w/ tick at end
-            y1=sql(f"{score_field} - ({z_alpha} * {stderr_field})"),
-            y2=sql(f"{score_field} + ({z_alpha} * {stderr_field})"),
-            stroke="black",
-            marker="tick-x",
-        ),
-        # model legend at bottom (remove some extraneous labels and margin)
+        components,
         legend=legend("color", location="bottom"),
         x_label=None,
         x_ticks=[],
         fx_label=None,
         margin_bottom=10,
-        # y axis w/ score domain
-        y_label="score",
-        y_domain=score_domain,
-        y_inset_top=10,
+        y_label=y.label,
+        y_domain=y.domain,
+        y_inset_top=10
     )
 
 
