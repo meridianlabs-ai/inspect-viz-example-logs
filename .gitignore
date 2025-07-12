@@ -1,5 +1,0 @@
-.venv/
-.quarto/
-__pycache__/
-*_files/
-*.html
