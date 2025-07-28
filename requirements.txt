@@ -36,8 +36,8 @@ httpcore==1.0.9
 httpx==0.28.1
 idna==3.10
 ijson==3.4.0
-inspect_ai @ git+https://github.com/UKGovernmentBEIS/inspect_ai.git@fe6340acbbb9fad25618920dbec8ac6ac30727f6
-inspect_viz @ git+https://github.com/meridianlabs-ai/inspect_viz@490501bda24eab223b5087ee2bb42b54b839333c
+inspect_ai @ git+https://github.com/UKGovernmentBEIS/inspect_ai.git@main
+inspect_viz @ git+https://github.com/meridianlabs-ai/inspect_viz@main
 ipykernel==6.30.0
 ipython==9.4.0
 ipython_pygments_lexers==1.1.1

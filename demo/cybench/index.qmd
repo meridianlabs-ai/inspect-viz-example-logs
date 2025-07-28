@@ -1,0 +1,48 @@
+---
+title: "Cybench Scores with Tool Calls"
+format: dashboard
+---
+
+```{python}
+from inspect_viz import Data, Selection
+from inspect_viz.input import select
+from inspect_viz.table import column, table
+from inspect_viz.view.beta import scores_with_baseline, tool_calls
+
+# read data
+evals = Data.from_file("cybench.parquet")
+tools = Data.from_file("cybench_tools.parquet")
+```
+
+## Row {.tabset height="35%"}
+
+```{python}
+#| title: Plot
+scores_with_baseline(evals, title="Cybench Scores")
+```
+
+
+```{python}
+#| title: Data
+table(
+    evals, 
+    columns=[
+        column("model_organization_name", label="Organization"),
+        column("model_display_name", label="Model"),
+        column("model_release_date", label="Release Date"),
+        column("score_headline_value", label="Score", width=100),
+        column("score_headline_stderr", label="StdErr", width=100),
+    ]
+)
+```
+
+## Row {height="65%"}
+
+```{python}
+#| content: card-toolbar
+select(tools, label="Tool Calls for Model:", column="model_display_name", value="auto")
+```
+
+```{python}
+tool_calls(tools)
+```
