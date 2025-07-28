@@ -1,0 +1,61 @@
+---
+title: "Capabilities Timeline"
+format: dashboard
+---
+
+```{python}
+from inspect_viz import Data, Param
+from inspect_viz.input import select
+from inspect_viz.mark import dot
+from inspect_viz.plot import plot
+from inspect_viz.table import table, column
+from inspect_viz.view.beta import scores_timeline
+from inspect_viz.input import checkbox_group, select
+
+evals = Data.from_file("benchmarks.parquet")
+```
+
+## {.sidebar}
+
+```{python}
+select(
+    evals,
+    column="task_name",
+    value="auto",
+    label="Benchmark"
+)
+
+checkbox_group(
+    evals, 
+    column="model_organization_name", 
+    label="Organization"
+)
+```
+
+***
+
+Benchmark data from the Epoch AI [Benchmarking Hub](https://epoch.ai/data/ai-benchmarking-dashboard).
+
+## Column
+
+### Row {height=60%}
+
+```{python}
+scores_timeline(evals, filters=False)
+```
+
+### Row {height=40%}
+
+```{python}
+table(
+    evals, 
+    columns=[
+        column("model_organization_name", label="Organization"),
+        column("model_display_name", label="Model"),
+        column("model_release_date", label="Release Date"),
+        column("score_headline_value", label="Score", width=100),
+        column("score_headline_stderr", label="StdErr", width=100),
+    ]
+)
+```
+
