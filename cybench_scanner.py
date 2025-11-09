@@ -6,6 +6,7 @@ from pydantic import BaseModel, Field
 
 class CybenchLint(BaseModel):
     tool_errors: int = Field(alias="value", description="How many tool calling errors occurred in this conversation?")
+    explanation: str = Field(description="Explain the source of the tool errors you found.")
   
 
 
