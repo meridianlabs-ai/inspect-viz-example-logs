@@ -4,3 +4,5 @@ __pycache__/
 *_files/
 *.html
 /.netlify
+.env
+scans/
